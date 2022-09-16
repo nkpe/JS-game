@@ -7,10 +7,44 @@ const cContext = canvas.getContext('2d');
 canvas.width = 1024;
 canvas.height = 576;
 
-// Fill Style (must be before fillRect!)
-cContext.fillStyle = "pink";
-// Fill Rect (X, Y, Width, Height)
-cContext.fillRect(0, 0, canvas.width, canvas.height);
+const collisionsMap = [];
+//Looping over the collisions data to create rows.
+for (let i = 0; i < collisions.length; i += 70) {
+    collisionsMap.push(collisions.slice(i, i + 70));
+};
+class Boundary {
+    static width = 48;
+    static height = 48;
+    constructor({ position }) {
+        this.position = position,
+            //48 is the size of each 'square' in the grid when exported from Tiled
+            this.width = 48,
+            this.height = 48
+    };
+    draw() {
+        cContext.fillStyle = "red";
+        //Fill Rec (X Start, Y Start, X End , Y End)
+        cContext.fillRect(this.position.x, this.position.y, this.width, this.height)
+    };
+}
+
+const boundaries = [];
+
+collisionsMap.forEach((row, i) => {
+    row.forEach((symbol, j) => {
+      if (symbol === 1025) { 
+        boundaries.push (
+            new Boundary({
+                position: {
+                    x: j * Boundary.width,
+                    y: i * Boundary.height
+                }
+            })
+        )}
+    })
+});
+
+console.log(boundaries[0]);
 
 // Create new JS image Object (can't use string directly - so set src)
 const image = new Image();
@@ -26,15 +60,15 @@ class Sprite {
         this.image = image;
     }
     //Method created
-    draw () {
+    draw() {
         cContext.drawImage(this.image, this.position.x, this.position.y);
     }
 }
 
 const background = new Sprite({
     position: {
-    x: -735,
-    y: -600
+        x: -735,
+        y: -600
     },
     image: image
 })
@@ -58,6 +92,9 @@ function animate() {
     // RequestAnimationFrame (function(call itself create infinite loop))
     window.requestAnimationFrame(animate);
     background.draw();
+    boundaries.forEach(Boundary => {
+        Boundary.draw();
+    })
     // Draw Image (HTMLImgObj, XCropStart, YCropStart, XCropEnd, YCropEnd, X, Y, actualWidth, actualHeight)
     cContext.drawImage(
         playerImage,
